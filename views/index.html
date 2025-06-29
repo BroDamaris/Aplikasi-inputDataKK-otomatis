@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Aplikasi Input Data Kartu Keluarga</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #f4f7f6;
+      }
+      .summary-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        text-align: center;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1),
+          0 2px 4px -2px rgb(0 0 0 / 0.1);
+        transition: all 0.2s ease-in-out;
+      }
+      .summary-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1),
+          0 4px 6px -4px rgb(0 0 0 / 0.1);
+      }
+      .summary-value {
+        font-size: 2.25rem;
+        font-weight: 700;
+        color: #1d4ed8;
+      }
+      .summary-label {
+        font-size: 0.875rem;
+        color: #4b5563;
+        margin-top: 0.25rem;
+      }
+      .anggota-card {
+        background-color: white;
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+          0 1px 2px -1px rgb(0 0 0 / 0.1);
+        border-left: 4px solid #3b82f6;
+      }
+      #message-box {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        padding: 1rem 1.5rem;
+        border-radius: 0.5rem;
+        color: white;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+        pointer-events: none;
+      }
+      #message-box.show {
+        opacity: 1;
+      }
+      #message-box.success {
+        background-color: #28a745;
+      }
+      #message-box.error {
+        background-color: #dc3545;
+      }
+      .voice-btn {
+        position: absolute;
+        top: 50%;
+        right: 0.75rem;
+        transform: translateY(-50%);
+        color: #6b7280;
+        cursor: pointer;
+      }
+      .voice-btn:hover {
+        color: #2563eb;
+      }
+    </style>
+  </head>
+  <body class="antialiased text-gray-800">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+      <header class="text-center mb-8">
+        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900">
+          Aplikasi Input Data Kartu Keluarga (KKN DESA KUTAJAYA)
+        </h1>
+        <p class="mt-2 text-md text-gray-600">
+          Input data dan simpan langsung ke Google Sheets by Damaris
+        </p>
+      </header>
+
+      <div
+        id="rt-info"
+        class="mb-4 text-center text-lg font-semibold text-blue-700"
+      ></div>
+
+      <div class="mb-6 text-center">
+        <a
+          href="/"
+          class="inline-block bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg shadow transition"
+        >
+          ← Kembali ke Pilih RT
+        </a>
+      </div>
+
+      <form id="kk-form" class="space-y-8">
+        <div class="bg-white p-6 rounded-xl shadow-md">
+          <h2 class="text-xl font-semibold mb-4 border-b pb-2">
+            Informasi Utama
+          </h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="relative">
+              <label
+                for="nomor-kk"
+                class="block text-sm font-medium text-gray-700 mb-1"
+              >
+                Nomor Kartu Keluarga (KK)
+              </label>
+              <input
+                type="text"
+                id="nomor-kk"
+                name="nomor-kk"
+                class="w-full px-3 py-2 pr-10 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Contoh: 3201234567890001"
+              />
+              <button
+                type="button"
+                id="voice-nomor-kk"
+                class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-500 hover:text-blue-600"
+                title="Isi dengan suara"
+              >
+                🎤
+              </button>
+            </div>
+            <div>
+              <label
+                for="jumlah-anggota"
+                class="block text-sm font-medium text-gray-700 mb-1"
+                >Jumlah Anggota Keluarga</label
+              >
+              <input
+                type="number"
+                id="jumlah-anggota"
+                name="jumlah-anggota"
+                min="1"
+                class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Contoh: 4"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div id="anggota-container" class="space-y-6"></div>
+
+        <div
+          id="summary-section"
+          class="bg-blue-50 p-6 rounded-xl shadow-md hidden"
+        >
+          <h2 class="text-xl font-semibold mb-6 border-b pb-2">
+            Ringkasan Data Keluarga
+          </h2>
+          <h3 class="font-semibold text-lg mb-4 text-gray-700">
+            Total Anggota
+          </h3>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-6"
+          >
+            <div class="summary-card">
+              <p id="total-laki" class="summary-value">0</p>
+              <p class="summary-label">Laki-laki</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-perempuan" class="summary-value">0</p>
+              <p class="summary-label">Perempuan</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-anggota-keluarga" class="summary-value">0</p>
+              <p class="summary-label">Total</p>
+            </div>
+          </div>
+          <h3 class="font-semibold text-lg mb-4 text-gray-700">
+            Kelompok Usia
+          </h3>
+          <div
+            class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-4 mb-6"
+          >
+            <div class="summary-card">
+              <p id="total-balita" class="summary-value">0</p>
+              <p class="summary-label">Balita (0-5 Thn)</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-anak" class="summary-value">0</p>
+              <p class="summary-label">Anak (&lt;18 Thn)</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-dewasa" class="summary-value">0</p>
+              <p class="summary-label">Dewasa (≥18 Thn)</p>
+            </div>
+          </div>
+          <h3 class="font-semibold text-lg mb-4 text-gray-700">
+            Tingkat Pendidikan
+          </h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div class="summary-card">
+              <p id="total-sd" class="summary-value">0</p>
+              <p class="summary-label">Lulusan SD</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-smp" class="summary-value">0</p>
+              <p class="summary-label">Lulusan SMP</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-sma" class="summary-value">0</p>
+              <p class="summary-label">Lulusan SMA/SMK</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-s1" class="summary-value">0</p>
+              <p class="summary-label">Lulusan S1</p>
+            </div>
+            <div class="summary-card">
+              <p id="total-s2" class="summary-value">0</p>
+              <p class="summary-label">Lulusan S2</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end pt-4">
+          <button
+            type="submit"
+            id="save-btn"
+            class="bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all duration-200 disabled:bg-gray-400"
+          >
+            Simpan ke Spreadsheet
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="message-box"></div>
+
+    <script>
+      const jumlahAnggotaInput = document.getElementById("jumlah-anggota");
+      const anggotaContainer = document.getElementById("anggota-container");
+      const kkForm = document.getElementById("kk-form");
+      const saveBtn = document.getElementById("save-btn");
+      const summarySection = document.getElementById("summary-section");
+
+      jumlahAnggotaInput.addEventListener("input", () => {
+        const count = parseInt(jumlahAnggotaInput.value, 10) || 0;
+        generateMemberCards(count);
+        updateSummary();
+        toggleSaveButton();
+        toggleSummarySection();
+      });
+
+      anggotaContainer.addEventListener("input", (e) => {
+        if (["INPUT", "SELECT"].includes(e.target.tagName)) {
+          updateSummary();
+          toggleSaveButton();
+        }
+      });
+
+      kkForm.addEventListener("submit", saveToSheet);
+
+      function generateMemberCards(count) {
+        anggotaContainer.innerHTML = "";
+        if (count > 0) {
+          for (let i = 1; i <= count; i++) {
+            // DIUBAH: Atribut 'required' dihapus dari semua input di bawah ini
+            const cardHTML = `
+                <div class="anggota-card" data-member-id="${i}">
+                    <h3 class="text-lg font-semibold text-blue-700 mb-4">Anggota Keluarga #${i}</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="relative">
+                            <label for="tgl-lahir-${i}" class="block text-sm font-medium text-gray-600">Tanggal Lahir</label>
+                            <input type="date" id="tgl-lahir-${i}" name="tgl-lahir-${i}" class="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div class="relative">
+                            <label for="gender-${i}" class="block text-sm font-medium text-gray-600">Jenis Kelamin</label>
+                            <select id="gender-${i}" name="gender-${i}" class="mt-1 w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none pr-8">
+                                <option value="">Pilih...</option>
+                                <option value="Laki-laki">Laki-laki</option>
+                                <option value="Perempuan">Perempuan</option>
+                            </select>
+                        </div>
+                        <div class="relative">
+                            <label for="pendidikan-${i}" class="block text-sm font-medium text-gray-600">Pendidikan Terakhir</label>
+                            <select id="pendidikan-${i}" name="pendidikan-${i}" class="mt-1 w-full px-3 py-2 border border-gray-300 bg-white rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 appearance-none pr-8">
+                                <option value="">Pilih...</option>
+                                <option value="Tidak/Belum Sekolah">Tidak/Belum Sekolah</option>
+                                <option value="SD">Lulus SD / Sederajat</option>
+                                <option value="SMP">Lulus SMP / Sederajat</option>
+                                <option value="SMA">Lulus SMA / Sederajat</option>
+                                <option value="S1">Lulus S1 / Sederajat</option>
+                                <option value="S2">Lulus S2 / Sederajat</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            `;
+            anggotaContainer.insertAdjacentHTML("beforeend", cardHTML);
+          }
+        }
+      }
+
+      function calculateAge(dobString) {
+        if (!dobString) return null;
+        const dob = new Date(dobString);
+        const ageDiffMs = Date.now() - dob.getTime();
+        const ageDate = new Date(ageDiffMs);
+        return Math.abs(ageDate.getUTCFullYear() - 1970);
+      }
+
+      function getSummaryData() {
+        let data = {
+          laki: 0,
+          perempuan: 0,
+          totalAnggota: 0,
+          anak: 0,
+          anakLaki: 0,
+          anakPerempuan: 0,
+          balita: 0,
+          balitaLaki: 0,
+          balitaPerempuan: 0,
+          dewasa: 0,
+          dewasaLaki: 0,
+          dewasaPerempuan: 0,
+          sd: 0,
+          smp: 0,
+          sma: 0,
+          s1: 0,
+          s2: 0,
+        };
+        const memberCards = anggotaContainer.querySelectorAll(".anggota-card");
+        data.totalAnggota = memberCards.length;
+        memberCards.forEach((card) => {
+          const id = card.dataset.memberId;
+          const gender = card.querySelector(`#gender-${id}`).value;
+          const dob = card.querySelector(`#tgl-lahir-${id}`).value;
+          const pendidikan = card.querySelector(`#pendidikan-${id}`).value;
+          const isLaki = gender === "Laki-laki";
+          const isPerempuan = gender === "Perempuan";
+          const age = calculateAge(dob);
+          if (isLaki) data.laki++;
+          if (isPerempuan) data.perempuan++;
+          if (age !== null) {
+            if (age <= 5) {
+              data.balita++;
+              if (isLaki) data.balitaLaki++;
+              if (isPerempuan) data.balitaPerempuan++;
+            }
+            if (age < 18 && age > 5) {
+              data.anak++;
+              if (isLaki) data.anakLaki++;
+              if (isPerempuan) data.anakPerempuan++;
+            }
+            if (age >= 18) {
+              data.dewasa++;
+              if (isLaki) data.dewasaLaki++;
+              if (isPerempuan) data.dewasaPerempuan++;
+            }
+          }
+          if (pendidikan === "SD") data.sd++;
+          if (pendidikan === "SMP") data.smp++;
+          if (pendidikan === "SMA") data.sma++;
+          if (pendidikan === "S1") data.s1++;
+          if (pendidikan === "S2") data.s2++;
+        });
+        return data;
+      }
+
+      function updateSummary() {
+        const totals = getSummaryData();
+        document.getElementById("total-laki").textContent = totals.laki;
+        document.getElementById("total-perempuan").textContent =
+          totals.perempuan;
+        document.getElementById("total-anggota-keluarga").textContent =
+          totals.totalAnggota;
+        document.getElementById("total-balita").textContent = totals.balita;
+        document.getElementById("total-anak").textContent = totals.anak;
+        document.getElementById("total-dewasa").textContent = totals.dewasa;
+        document.getElementById("total-sd").textContent = totals.sd;
+        document.getElementById("total-smp").textContent = totals.smp;
+        document.getElementById("total-sma").textContent = totals.sma;
+        document.getElementById("total-s1").textContent = totals.s1;
+        document.getElementById("total-s2").textContent = totals.s2;
+      }
+
+      // DIUBAH: Fungsi ini dikosongkan agar tidak lagi menonaktifkan tombol
+      function toggleSaveButton() {
+        // const isFormValid = kkForm.checkValidity();
+        // saveBtn.disabled = !isFormValid;
+      }
+
+      function toggleSummarySection() {
+        const count = parseInt(jumlahAnggotaInput.value, 10) || 0;
+        summarySection.classList.toggle("hidden", count === 0);
+      }
+
+      function showMessage(message, type = "success") {
+        const messageBox = document.getElementById("message-box");
+        messageBox.textContent = message;
+        messageBox.className = "";
+        messageBox.classList.add(type, "show");
+        setTimeout(() => {
+          messageBox.classList.remove("show");
+        }, 3000);
+      }
+
+      function getRTfromQuery() {
+        const params = new URLSearchParams(window.location.search);
+        return params.get("rt") || "";
+      }
+      const selectedRT = getRTfromQuery();
+      document.getElementById("rt-info").textContent = selectedRT
+        ? `RT: ${selectedRT}`
+        : "";
+
+      async function saveToSheet(event) {
+        event.preventDefault();
+
+        // DIUBAH: Pengecekan validitas sebelum mengirim data dihapus
+        /* if (!kkForm.checkValidity()) {
+          showMessage("Harap isi semua kolom yang diperlukan.", "error");
+          return;
+        } 
+        */
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Menyimpan...";
+        const nomorKK = document.getElementById("nomor-kk").value;
+        const summary = getSummaryData();
+        const payload = {
+          nomorKK,
+          totalPenduduk: summary.totalAnggota,
+          lakiLaki: summary.laki,
+          perempuan: summary.perempuan,
+          anakLaki: summary.anakLaki,
+          anakPerempuan: summary.anakPerempuan,
+          balitaLaki: summary.balitaLaki,
+          balitaPerempuan: summary.balitaPerempuan,
+          dewasaLaki: summary.dewasaLaki,
+          dewasaPerempuan: summary.dewasaPerempuan,
+          sd: summary.sd,
+          smp: summary.smp,
+          sma: summary.sma,
+          s1: summary.s1,
+          s2: summary.s2,
+          rt: selectedRT,
+        };
+        try {
+          const response = await fetch("/api/save", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+          });
+          const result = await response.json();
+          if (!response.ok) {
+            throw new Error(result.error || "Terjadi kesalahan pada server.");
+          }
+          showMessage("Data berhasil disimpan ke Spreadsheet!", "success");
+          kkForm.reset();
+          anggotaContainer.innerHTML = "";
+          updateSummary();
+          toggleSummarySection();
+          toggleSaveButton();
+        } catch (error) {
+          console.error("Error saving data:", error);
+          showMessage(`Gagal menyimpan: ${error.message}`, "error");
+        } finally {
+          // Tombol akan tetap nonaktif sementara untuk mencegah klik ganda, lalu aktif lagi
+          saveBtn.disabled = false;
+          saveBtn.textContent = "Simpan ke Spreadsheet";
+        }
+      }
+
+      function enableVoiceRecognition(buttonId, inputId) {
+        const button = document.getElementById(buttonId);
+        const input = document.getElementById(inputId);
+        if (!("webkitSpeechRecognition" in window)) {
+          alert("Browser Anda tidak mendukung voice recognition.");
+          return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "id-ID";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        button.addEventListener("click", () => {
+          recognition.start();
+          button.textContent = "🎙️";
+          recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript.replace(
+              /\D/g,
+              ""
+            );
+            input.value = transcript;
+            input.dispatchEvent(new Event("input"));
+            button.textContent = "🎤";
+          };
+          recognition.onerror = (event) => {
+            console.error("Voice recognition error:", event.error);
+            button.textContent = "🎤";
+          };
+          recognition.onend = () => {
+            button.textContent = "🎤";
+          };
+        });
+      }
+
+      function enableVoiceDateRecognition(button, input) {
+        if (!("webkitSpeechRecognition" in window)) {
+          button.disabled = true;
+          button.title = "Browser tidak mendukung voice recognition";
+          return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "id-ID";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        button.addEventListener("click", () => {
+          recognition.start();
+          button.textContent = "🎙️";
+        });
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          const digitsOnly = transcript.replace(/\D/g, "");
+          if (digitsOnly.length === 8) {
+            const day = digitsOnly.substring(0, 2);
+            const month = digitsOnly.substring(2, 4);
+            const year = digitsOnly.substring(4, 8);
+            const formattedDate = `${year}-${month}-${day}`;
+            input.value = formattedDate;
+            input.dispatchEvent(new Event("input"));
+          } else {
+            console.error(
+              `Input suara tidak valid. Diharapkan 8 digit (DDMMYYYY), tetapi diterima: "${transcript}" -> "${digitsOnly}"`
+            );
+            alert(
+              `Format tanggal tidak dikenal. Ucapkan 8 digit seperti "nol delapan nol lima sembilan belas lima puluh tujuh".`
+            );
+          }
+          button.textContent = "🎤";
+        };
+        recognition.onerror = (event) => {
+          console.error("Voice recognition error:", event.error);
+          button.textContent = "🎤";
+        };
+        recognition.onend = () => {
+          button.textContent = "🎤";
+        };
+      }
+
+      function enableVoiceSelectRecognition(button, selectElement, commands) {
+        if (!("webkitSpeechRecognition" in window)) {
+          button.disabled = true;
+          return;
+        }
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "id-ID";
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        button.addEventListener("click", () => {
+          recognition.start();
+          button.textContent = "🎙️";
+        });
+        recognition.onresult = (event) => {
+          const transcript = event.results[0][0].transcript
+            .toLowerCase()
+            .trim();
+          let matchFound = false;
+          for (const key in commands) {
+            if (transcript.includes(key)) {
+              selectElement.value = commands[key];
+              selectElement.dispatchEvent(new Event("input"));
+              matchFound = true;
+              break;
+            }
+          }
+          if (!matchFound) {
+            alert(
+              `Perintah tidak dikenali. Coba ucapkan salah satu dari: "${Object.keys(
+                commands
+              ).join('", "')}".`
+            );
+          }
+          button.textContent = "🎤";
+        };
+        recognition.onerror = (event) => {
+          console.error("Voice recognition error:", event.error);
+          button.textContent = "🎤";
+        };
+        recognition.onend = () => {
+          button.textContent = "🎤";
+        };
+      }
+
+      const observer = new MutationObserver(() => {
+        document.querySelectorAll(".anggota-card").forEach((card) => {
+          // --- Logika untuk Tanggal Lahir ---
+          const dateInput = card.querySelector('input[type="date"]');
+          if (dateInput && !card.querySelector(".voice-tgl-lahir")) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "voice-tgl-lahir voice-btn";
+            btn.innerHTML = `🎤`;
+            btn.title = "Isi tanggal lahir dengan suara";
+            dateInput.parentNode.appendChild(btn);
+            enableVoiceDateRecognition(btn, dateInput);
+          }
+
+          // --- Logika untuk Jenis Kelamin ---
+          const genderSelect = card.querySelector('select[name^="gender-"]');
+          if (genderSelect && !card.querySelector(".voice-gender")) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "voice-gender voice-btn";
+            btn.innerHTML = `🎤`;
+            btn.title = "Pilih jenis kelamin dengan suara";
+            genderSelect.parentNode.appendChild(btn);
+            const genderCommands = {
+              laki: "Laki-laki",
+              l: "Laki-laki",
+              cowo: "Laki-laki",
+              perempuan: "Perempuan",
+              c: "Perempuan",
+              cewe: "Perempuan",
+            };
+            enableVoiceSelectRecognition(btn, genderSelect, genderCommands);
+          }
+
+          // --- LOGIKA BARU UNTUK PENDIDIKAN ---
+          const eduSelect = card.querySelector('select[name^="pendidikan-"]');
+          if (eduSelect && !card.querySelector(".voice-education")) {
+            const btn = document.createElement("button");
+            btn.type = "button";
+            btn.className = "voice-education voice-btn";
+            btn.innerHTML = "🎤";
+            btn.title = "Pilih pendidikan dengan suara";
+            eduSelect.parentNode.appendChild(btn);
+
+            // Definisikan perintah suara yang lebih kompleks
+            const educationCommands = {
+              tidak: "Tidak/Belum Sekolah",
+              "belum sekolah": "Tidak/Belum Sekolah",
+              "belum tamat sd": "Tidak/Belum Sekolah",
+              belum: "Tidak/Belum Sekolah",
+              belom: "Tidak/Belum Sekolah",
+              sd: "SD",
+              sltp: "SMP",
+              smp: "SMP",
+              slta: "SMA",
+              sma: "SMA",
+              s1: "S1",
+              s2: "S2",
+            };
+
+            enableVoiceSelectRecognition(btn, eduSelect, educationCommands);
+          }
+        });
+      });
+      observer.observe(anggotaContainer, { childList: true, subtree: true });
+
+      enableVoiceRecognition("voice-nomor-kk", "nomor-kk");
+    </script>
+  </body>
+</html>

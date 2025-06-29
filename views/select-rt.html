@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pilih RT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="flex items-center justify-center min-h-screen bg-blue-50">
+    <form id="rt-form" class="bg-white p-8 rounded-xl shadow-lg space-y-6">
+      <h1 class="text-2xl font-bold text-gray-800 mb-4">Pilih RT</h1>
+      <select
+        id="rt-select"
+        name="rt"
+        class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"
+        required
+      >
+        <option value="">Pilih RT...</option>
+        <option value="RT 1">RT 1</option>
+        <option value="RT 2">RT 2</option>
+        <option value="RT 3">RT 3</option>
+        <option value="RT 4">RT 4</option>
+        <option value="RT 5">RT 5</option>
+        <option value="RT 6">RT 6</option>
+        <option value="RT 7">RT 7</option>
+        <option value="RT 8">RT 8</option>
+        <option value="RT 9">RT 9</option>
+        <option value="RT 10">RT 10</option>
+        <option value="RT 11">RT 11</option>
+        <option value="RT 12">RT 12</option>
+      </select>
+      <button
+        type="submit"
+        class="w-full bg-blue-600 text-white font-bold py-2 rounded-lg hover:bg-blue-700 transition"
+      >
+        Lanjut
+      </button>
+    </form>
+    <script>
+      document
+        .getElementById("rt-form")
+        .addEventListener("submit", function (e) {
+          e.preventDefault();
+          const rt = document.getElementById("rt-select").value;
+          if (rt) {
+            window.location.href = `/input?rt=${encodeURIComponent(rt)}`;
+          }
+        });
+    </script>
+  </body>
+</html>
